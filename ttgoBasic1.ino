@@ -4,6 +4,7 @@
  */
 
 // Meter colour schemes
+#define SECS_PER_MIN  (60UL)
 #define RED2RED     0
 #define GREEN2GREEN 1
 #define BLUE2BLUE   2
@@ -11,9 +12,12 @@
 #define GREEN2RED   4
 #define RED2GREEN   5
 #define RAINBOW     6
-
+#define numberOfSeconds(_time_) (_time_ % SECS_PER_MIN)  
+#define numberOfMinutes(_time_) ((_time_ / SECS_PER_MIN) % SECS_PER_MIN) 
 #include <TFT_eSPI.h>
 #include <SPI.h>
+int minutes;
+int seconds;
 float total = 0;
 float maximum = 1000;
 float timerTrue = 0.0;
@@ -41,8 +45,12 @@ void loop() {
  tft.setRotation(1);
  int percent = ((total/maximum) * 100);
  tft.drawNumber(int(percent),60,110,4);
-  int clocker = (millis() - timerTrue)/1000; 
- tft.drawNumber(clocker,140,110,4);
+  int clocker = (millis() - timerTrue)/1000;
+  time(clocker);
+
+ tft.drawNumber(minutes,140,110,4);
+ tft.drawString(":",160,110,4);
+ tft.drawNumber(seconds,170,110,4);
  reading = map(total,0, maximum, 1,19);
  
   linearMeter(reading, 55,  10, 5, 35, 3, 19, RED2RED);
@@ -147,4 +155,8 @@ uint16_t rainbowColor(uint8_t spectrum)
   }
 
   return red << 11 | green << 6 | blue;
+}
+void time(long val){  
+ minutes = numberOfMinutes(val);
+ seconds = numberOfSeconds(val);
 }
