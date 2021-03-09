@@ -14,14 +14,21 @@
 #define RAINBOW     6
 #define numberOfSeconds(_time_) (_time_ % SECS_PER_MIN)  
 #define numberOfMinutes(_time_) ((_time_ / SECS_PER_MIN) % SECS_PER_MIN) 
+const int numReadings = 10;
 #include <TFT_eSPI.h>
 #include <SPI.h>
 int minutes;
 int seconds;
+int changer = 0;
 float total = 0;
 float maximum = 1000;
 float timerTrue = 0.0;
 int bight = 0;
+int readings[numReadings];      // the readings from the analog input
+int readIndex = 0;              // the index of the current reading
+int total2 = 0;                  // the running total
+int average = 0;                // the average
+
 TFT_eSPI tft = TFT_eSPI();
 
 int reading = 0;
@@ -33,6 +40,9 @@ void setup(void) {
   tft.fillScreen(TFT_BLACK);
   timerTrue = millis();
   total = maximum;
+  for (int thisReading = 0; thisReading < numReadings; thisReading++) {
+    readings[thisReading] = 0;
+  }
 }
 
 void loop() {
@@ -45,15 +55,16 @@ void loop() {
  tft.setRotation(1);
  int percent = ((total/maximum) * 100);
  tft.drawNumber(int(percent),60,110,4);
+ tft.drawString("%",100,110,4);
   int clocker = (millis() - timerTrue)/1000;
   time(clocker);
 
  tft.drawNumber(minutes,140,110,4);
  tft.drawString(":",160,110,4);
  tft.drawNumber(seconds,170,110,4);
- reading = map(total,0, maximum, 1,19);
- 
-  linearMeter(reading, 55,  10, 5, 35, 3, 19, RED2RED);
+ reading = map(total,0, maximum, 20,0);
+ int flight = map(average, -100, 100, 1,19);
+  linearMeter(flight, 55,  10, 5, 35, 3, 19, RED2RED);
   linearMeter(reading, 55,  60, 5, 35, 3, 19, RED2RED);
   //linearMeter(reading, 10,  40, 5, 25, 3, 20, GREEN2GREEN);
   //linearMeter(reading, 10,  70, 5, 25, 3, 20, BLUE2BLUE);
@@ -61,7 +72,27 @@ void loop() {
   //linearMeter(reading, 10, 130, 5, 25, 3, 20, GREEN2RED);
   //linearMeter(reading, 10, 160, 5, 25, 3, 20, RED2GREEN);
  //linearMeter(reading, 10, 190, 5, 25, 3, 20, RAINBOW);
-   total = total - int(random(2,60));
+    changer = int(random(-100,100));
+    total2 = total2 - readings[readIndex];
+  // read from the sensor:
+  readings[readIndex] = changer;
+  // add the reading to the total:
+  total2 = total2 + readings[readIndex];
+  // advance to the next position in the array:
+  readIndex = readIndex + 1;
+
+  // if we're at the end of the array...
+  if (readIndex >= numReadings) {
+    // ...wrap around to the beginning:
+    readIndex = 0;
+  }
+
+  // calculate the average:
+  average = total2 / numReadings;
+  // send it to the computer as ASCII digits
+  Serial.println(average);
+   total = total - average;
+   if (total < 0) total = 1000.0;
 Serial.println(total);
   delay (1000);
   tft.fillScreen(TFT_BLACK);
@@ -98,6 +129,7 @@ void linearMeter(int val, int x, int y, int w, int h, int g, int n, byte s)
     {
       tft.fillRect(x + b*(w+g), y, w, h, TFT_RED);
     }
+    tft.fillRect(135,10,5,35,TFT_WHITE);
   }
 }
 
