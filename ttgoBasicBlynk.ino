@@ -19,13 +19,13 @@ const int numReadings = 10;
 #include <WiFi.h>
 #include <WiFiClient.h>
 #include <BlynkSimpleEsp32.h>
-char auth[] = "Ed7JbiybDgCdtQ8_RhPA22L7FQecmMnS";
+char auth[] = "";
 
 
 // Your WiFi credentials.
 // Set password to "" for open networks.
-char ssid[] = "Palm2704";
-char pass[] = "9073456071";
+char ssid[] = "";
+char pass[] = "";
 Adafruit_PM25AQI aqi = Adafruit_PM25AQI();
 Adafruit_NeoPixel strip = Adafruit_NeoPixel(8, PIN, NEO_GRB + NEO_KHZ800);
 int zedLevel = 1; 
